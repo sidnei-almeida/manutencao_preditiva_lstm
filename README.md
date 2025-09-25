@@ -186,7 +186,7 @@ Este projeto está sob licença MIT. Veja o arquivo LICENSE para mais detalhes.
 
 **Sidnei Almeida**
 - GitHub: [@sidnei-almeida](https://github.com/sidnei-almeida)
-- LinkedIn: [Sidnei Almeida](https://linkedin.com/in/sidnei-almeida)
+- LinkedIn: [Sidnei Almeida](https://www.linkedin.com/in/saaelmeida93/)
 
 ---
 
