@@ -177,11 +177,19 @@ O app espera dados no seguinte formato:
 
 ## 🎯 Métricas Exibidas
 
-- **Acurácia**: Performance geral do modelo
-- **Perda**: Função de custo durante treinamento
+### Performance do Modelo
+- **Acurácia**: 95.2% - Performance geral do modelo
+- **Perda**: 0.162 - Função de custo durante treinamento
 - **Precisão**: Estimativa baseada na acurácia
 - **Recall**: Estimativa baseada na acurácia
 - **Correlações**: Relação entre features e falhas
+
+### Dataset
+- **Total de Amostras**: 10.000 registros
+- **Features**: 7 sensores (temperatura, velocidade, torque, etc.)
+- **Classes**: 2 (Normal/Falha)
+- **Distribuição**: ~96% Normal, ~4% Falha
+- **Sequência Temporal**: 50 timesteps para LSTM
 
 ## 🚀 Próximos Passos
 
