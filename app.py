@@ -17,17 +17,28 @@ import tempfile
 warnings.filterwarnings('ignore')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-# Importar TensorFlow de forma segura
+# Configurações específicas para tensorflow-cpu no Streamlit Cloud
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Forçar uso apenas de CPU
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+
+# Importar TensorFlow de forma segura e otimizada
 try:
     import tensorflow as tf
+    # Configurar TensorFlow para usar apenas CPU
+    tf.config.set_visible_devices([], 'GPU')
     tf.get_logger().setLevel('ERROR')
+    
+    # Configurações de threading para evitar problemas no Streamlit Cloud
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+    tf.config.threading.set_intra_op_parallelism_threads(1)
+    
     TF_AVAILABLE = True
 except ImportError:
     TF_AVAILABLE = False
-    st.error("TensorFlow não está disponível. Algumas funcionalidades podem estar limitadas.")
+    st.warning("TensorFlow não está disponível. Usando modelo simulado.")
 except Exception as e:
     TF_AVAILABLE = False
-    st.warning(f"Aviso na importação do TensorFlow: {e}. Continuando com funcionalidades limitadas.")
+    st.warning(f"Aviso na importação do TensorFlow: {e}. Usando modelo simulado.")
 
 # Configuração da página
 st.set_page_config(
@@ -36,6 +47,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Configurações de threading para evitar problemas no Streamlit Cloud
+import threading
+threading.stack_size(65536)
 
 # CSS personalizado para tema escuro elegante com cores técnicas
 st.markdown("""
@@ -243,7 +258,7 @@ def load_training_data():
         # Se não existir local, tentar do GitHub
         training_url = "https://raw.githubusercontent.com/sidnei-almeida/manutencao_preditiva_lstm/main/treinamento/training_summary.json"
         
-        response = requests.get(training_url, timeout=30)
+        response = requests.get(training_url, timeout=30, headers={'User-Agent': 'Mozilla/5.0'})
         
         if response.status_code == 200:
             training_data = response.json()
@@ -300,8 +315,8 @@ def load_processed_data():
         X_url = "https://raw.githubusercontent.com/sidnei-almeida/manutencao_preditiva_lstm/main/dados/X_processed.npy"
         y_url = "https://raw.githubusercontent.com/sidnei-almeida/manutencao_preditiva_lstm/main/dados/y_processed.npy"
         
-        X_response = requests.get(X_url, timeout=60)
-        y_response = requests.get(y_url, timeout=60)
+        X_response = requests.get(X_url, timeout=60, headers={'User-Agent': 'Mozilla/5.0'})
+        y_response = requests.get(y_url, timeout=60, headers={'User-Agent': 'Mozilla/5.0'})
         
         if X_response.status_code == 200 and y_response.status_code == 200:
             # Salvar temporariamente e carregar
@@ -318,18 +333,114 @@ def load_processed_data():
             return X, y
         else:
             st.warning(f"Erro ao baixar arquivos do GitHub (X: {X_response.status_code}, y: {y_response.status_code}). Gerando dados de demonstração.")
-            # Gerar dados de demonstração
+            # Gerar dados de demonstração realistas
             np.random.seed(42)
-            X = np.random.random((10000, 7)).astype('float32')
-            y = np.random.choice([0, 1], size=(10000,), p=[0.95, 0.05]).astype('float32')
+            
+            # Gerar dados realistas para sensores industriais
+            n_samples = 10000
+            
+            # Air Temperature [K] - entre 280-350K
+            air_temp = np.random.normal(300, 15, n_samples)
+            air_temp = np.clip(air_temp, 280, 350)
+            
+            # Process Temperature [K] - ligeiramente maior que air temp
+            process_temp = air_temp + np.random.normal(10, 5, n_samples)
+            process_temp = np.clip(process_temp, 280, 350)
+            
+            # Rotational Speed [rpm] - entre 1000-3000
+            rotational_speed = np.random.normal(2000, 300, n_samples)
+            rotational_speed = np.clip(rotational_speed, 1000, 3000)
+            
+            # Torque [Nm] - entre 0-100
+            torque = np.random.normal(40, 15, n_samples)
+            torque = np.clip(torque, 0, 100)
+            
+            # Tool Wear [min] - entre 0-300
+            tool_wear = np.random.normal(150, 50, n_samples)
+            tool_wear = np.clip(tool_wear, 0, 300)
+            
+            # Type_L e Type_M (dummy variables)
+            type_l = np.random.choice([0, 1], n_samples, p=[0.7, 0.3])
+            type_m = np.random.choice([0, 1], n_samples, p=[0.6, 0.4])
+            
+            # Combinar features
+            X = np.column_stack([
+                air_temp, process_temp, rotational_speed, torque, tool_wear, type_l, type_m
+            ]).astype('float32')
+            
+            # Normalizar os dados (exceto as dummy variables)
+            from sklearn.preprocessing import StandardScaler
+            scaler = StandardScaler()
+            X[:, :5] = scaler.fit_transform(X[:, :5])  # Normalizar apenas as primeiras 5 features
+            
+            # Gerar targets realistas baseados em padrões
+            # Falhas mais prováveis com temperaturas altas, torque alto, tool wear alto
+            failure_prob = (
+                0.1 * (X[:, 0] > 1.5) +  # Air temp alta
+                0.1 * (X[:, 1] > 1.5) +  # Process temp alta  
+                0.2 * (X[:, 3] > 1.5) +  # Torque alto
+                0.3 * (X[:, 4] > 1.5) +  # Tool wear alto
+                0.1 * np.random.random(n_samples)  # Ruído aleatório
+            )
+            
+            y = (failure_prob > 0.3).astype('float32')
+            
             return X, y
             
     except Exception as e:
         st.warning(f"Erro ao carregar dados processados: {e}. Gerando dados de demonstração.")
-        # Gerar dados de demonstração
+        # Gerar dados de demonstração realistas
         np.random.seed(42)
-        X = np.random.random((10000, 7)).astype('float32')
-        y = np.random.choice([0, 1], size=(10000,), p=[0.95, 0.05]).astype('float32')
+        
+        # Gerar dados realistas para sensores industriais
+        n_samples = 10000
+        
+        # Air Temperature [K] - entre 280-350K
+        air_temp = np.random.normal(300, 15, n_samples)
+        air_temp = np.clip(air_temp, 280, 350)
+        
+        # Process Temperature [K] - ligeiramente maior que air temp
+        process_temp = air_temp + np.random.normal(10, 5, n_samples)
+        process_temp = np.clip(process_temp, 280, 350)
+        
+        # Rotational Speed [rpm] - entre 1000-3000
+        rotational_speed = np.random.normal(2000, 300, n_samples)
+        rotational_speed = np.clip(rotational_speed, 1000, 3000)
+        
+        # Torque [Nm] - entre 0-100
+        torque = np.random.normal(40, 15, n_samples)
+        torque = np.clip(torque, 0, 100)
+        
+        # Tool Wear [min] - entre 0-300
+        tool_wear = np.random.normal(150, 50, n_samples)
+        tool_wear = np.clip(tool_wear, 0, 300)
+        
+        # Type_L e Type_M (dummy variables)
+        type_l = np.random.choice([0, 1], n_samples, p=[0.7, 0.3])
+        type_m = np.random.choice([0, 1], n_samples, p=[0.6, 0.4])
+        
+        # Combinar features
+        X = np.column_stack([
+            air_temp, process_temp, rotational_speed, torque, tool_wear, type_l, type_m
+        ]).astype('float32')
+        
+        # Normalizar os dados (exceto as dummy variables)
+        from sklearn.preprocessing import StandardScaler
+        scaler = StandardScaler()
+        X[:, :5] = scaler.fit_transform(X[:, :5])  # Normalizar apenas as primeiras 5 features
+        
+        # Gerar targets realistas baseados em padrões
+        # Falhas mais prováveis com temperaturas altas, torque alto, tool wear alto
+        failure_prob = (
+            0.1 * (X[:, 0] > 1.5) +  # Air temp alta
+            0.1 * (X[:, 1] > 1.5) +  # Process temp alta  
+            0.2 * (X[:, 3] > 1.5) +  # Torque alto
+            0.3 * (X[:, 4] > 1.5) +  # Tool wear alto
+            0.1 * np.random.random(n_samples)  # Ruído aleatório
+        )
+        
+        y = (failure_prob > 0.3).astype('float32')
+        
         return X, y
 
 @st.cache_resource
@@ -343,12 +454,21 @@ def load_model():
         # Primeiro, tentar carregar do arquivo local
         local_model_path = "modelos/predictive_maintenance_model.keras"
         if os.path.exists(local_model_path):
-            return tf.keras.models.load_model(local_model_path)
+            # Configurar TensorFlow para carregamento seguro com CPU
+            with tf.device('/CPU:0'):
+                model = tf.keras.models.load_model(local_model_path, compile=False)
+                # Compilar o modelo após carregar
+                model.compile(
+                    optimizer='adam',
+                    loss='binary_crossentropy',
+                    metrics=['accuracy']
+                )
+                return model
         
         # Se não existir local, tentar do GitHub
         model_url = "https://raw.githubusercontent.com/sidnei-almeida/manutencao_preditiva_lstm/main/modelos/predictive_maintenance_model.keras"
         
-        response = requests.get(model_url, timeout=60)
+        response = requests.get(model_url, timeout=60, headers={'User-Agent': 'Mozilla/5.0'})
         
         if response.status_code == 200:
             # Salvar temporariamente em arquivo e carregar
@@ -356,8 +476,15 @@ def load_model():
                 temp_file.write(response.content)
                 temp_file_path = temp_file.name
             
-            # Carregar o modelo do arquivo temporário
-            model = tf.keras.models.load_model(temp_file_path)
+            # Carregar o modelo do arquivo temporário com configuração CPU
+            with tf.device('/CPU:0'):
+                model = tf.keras.models.load_model(temp_file_path, compile=False)
+                # Compilar o modelo após carregar
+                model.compile(
+                    optimizer='adam',
+                    loss='binary_crossentropy',
+                    metrics=['accuracy']
+                )
             
             # Remover arquivo temporário
             os.unlink(temp_file_path)
@@ -378,17 +505,19 @@ def create_demo_model():
         return "modelo_simulado"
     
     try:
-        model = tf.keras.Sequential([
-            tf.keras.layers.LSTM(64, input_shape=(50, 7)),
-            tf.keras.layers.Dropout(0.2),
-            tf.keras.layers.Dense(1, activation='sigmoid')
-        ])
-        
-        model.compile(
-            optimizer='adam',
-            loss='binary_crossentropy',
-            metrics=['accuracy']
-        )
+        # Criar modelo com configuração CPU
+        with tf.device('/CPU:0'):
+            model = tf.keras.Sequential([
+                tf.keras.layers.LSTM(64, input_shape=(50, 7)),
+                tf.keras.layers.Dropout(0.2),
+                tf.keras.layers.Dense(1, activation='sigmoid')
+            ])
+            
+            model.compile(
+                optimizer='adam',
+                loss='binary_crossentropy',
+                metrics=['accuracy']
+            )
         
         return model
     except Exception as e:
@@ -1290,8 +1419,22 @@ def show_random_prediction(X, y, model):
             sequence_X = sequence_X.astype('float32')
             
             if model == "modelo_simulado":
-                # Simular predição
-                prediction_prob = np.random.random()
+                # Simular predição baseada nos dados da amostra
+                # Usar os valores normalizados da amostra para calcular risco
+                sample_values = sample_X[0]  # Primeira (e única) amostra
+                
+                # Calcular score de risco baseado nos valores normalizados
+                risk_score = (
+                    0.2 * max(0, sample_values[0] - 1.5) +      # Air temp alta
+                    0.2 * max(0, sample_values[1] - 1.5) +      # Process temp alta
+                    0.1 * max(0, sample_values[3] - 1.5) +      # Torque alto
+                    0.3 * max(0, sample_values[4] - 1.5) +      # Tool wear alto
+                    0.1 * max(0, abs(sample_values[2]) - 1.5) + # Velocidade anômala
+                    0.1 * np.random.random()  # Ruído aleatório
+                )
+                
+                # Converter para probabilidade usando sigmoid
+                prediction_prob = 1 / (1 + np.exp(-risk_score * 2))
                 prediction = 1 if prediction_prob > 0.5 else 0
             else:
                 prediction_prob = model.predict(sequence_X, verbose=0)[0][0]
@@ -1503,9 +1646,26 @@ def show_custom_prediction(model):
             
             with st.spinner("Analisando..."):
                 if model == "modelo_simulado":
-                    # Simular predição baseada nos valores de entrada
-                    risk_score = (air_temp - 300) / 50 + (tool_wear - 50) / 100 + (torque - 20) / 80
-                    prediction_prob = min(max(0.2 + risk_score * 0.3, 0.1), 0.9)
+                    # Simular predição baseada nos valores de entrada com lógica mais realista
+                    # Normalizar os valores de entrada para calcular risco
+                    air_temp_norm = (air_temp - 300) / 15  # Normalizar baseado na distribuição
+                    process_temp_norm = (process_temp - 310) / 15
+                    rotational_speed_norm = (rotational_speed - 2000) / 300
+                    torque_norm = (torque - 40) / 15
+                    tool_wear_norm = (tool_wear - 150) / 50
+                    
+                    # Calcular score de risco baseado em padrões realistas
+                    risk_score = (
+                        0.2 * max(0, air_temp_norm - 1.5) +      # Temp alta
+                        0.2 * max(0, process_temp_norm - 1.5) +  # Process temp alta
+                        0.1 * max(0, torque_norm - 1.5) +        # Torque alto
+                        0.3 * max(0, tool_wear_norm - 1.5) +     # Tool wear alto
+                        0.1 * max(0, abs(rotational_speed_norm) - 1.5) +  # Velocidade anômala
+                        0.1 * np.random.random()  # Ruído aleatório
+                    )
+                    
+                    # Converter para probabilidade usando sigmoid
+                    prediction_prob = 1 / (1 + np.exp(-risk_score * 2))
                     prediction = 1 if prediction_prob > 0.5 else 0
                 else:
                     prediction_prob = model.predict(sequence_data, verbose=0)[0][0]

@@ -1,20 +1,15 @@
-[theme]
-# Configuração do tema escuro para o Streamlit
-primaryColor = "#00D4AA"        # Cor primária (verde-azulado técnico)
-backgroundColor = "#0E1117"      # Cor de fundo (escuro)
-secondaryBackgroundColor = "#1E1E1E"  # Cor de fundo secundária (cinza escuro)
-textColor = "#FAFAFA"            # Cor do texto (branco claro)
-
 [server]
-# Configurações do servidor
-port = 8502
-address = "0.0.0.0"
 headless = true
+enableCORS = false
+enableXsrfProtection = false
+port = 8501
+maxUploadSize = 200
 
 [browser]
-# Configurações do navegador
 gatherUsageStats = false
 
-[global]
-# Configurações globais
-developmentMode = false
+[theme]
+primaryColor = "#00D4AA"
+backgroundColor = "#0E1117"
+secondaryBackgroundColor = "#1E1E1E"
+textColor = "#FAFAFA"
