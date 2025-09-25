@@ -9,6 +9,8 @@ from streamlit_option_menu import option_menu
 import warnings
 import json
 import os
+import requests
+from io import BytesIO
 from pathlib import Path
 import tempfile
 warnings.filterwarnings('ignore')
@@ -216,37 +218,77 @@ st.markdown("""
 
 @st.cache_data
 def load_training_data():
-    """Carrega os dados de treinamento do arquivo JSON"""
+    """Carrega os dados de treinamento do GitHub"""
     try:
-        with open('treinamento/training_summary.json', 'r') as f:
-            training_data = json.load(f)
-        return training_data
+        # URL do arquivo no GitHub
+        training_url = "https://raw.githubusercontent.com/sidnei-almeida/manutencao_preditiva_lstm/main/treinamento/training_summary.json"
+        
+        # Fazer download do arquivo
+        response = requests.get(training_url)
+        
+        if response.status_code == 200:
+            training_data = response.json()
+            return training_data
+        else:
+            st.error("Erro ao baixar dados de treinamento do GitHub")
+            return None
+            
     except Exception as e:
         st.error(f"Erro ao carregar dados de treinamento: {e}")
         return None
 
 @st.cache_data
 def load_processed_data():
-    """Carrega os dados processados"""
+    """Carrega os dados processados do GitHub"""
     try:
-        X = np.load('dados/X_processed.npy', allow_pickle=True)
-        y = np.load('dados/y_processed.npy', allow_pickle=True)
+        # URLs dos arquivos no GitHub
+        X_url = "https://raw.githubusercontent.com/sidnei-almeida/manutencao_preditiva_lstm/main/dados/X_processed.npy"
+        y_url = "https://raw.githubusercontent.com/sidnei-almeida/manutencao_preditiva_lstm/main/dados/y_processed.npy"
         
-        # Converter para float32 para compatibilidade com o modelo
-        X = X.astype('float32')
-        y = y.astype('float32')
+        # Fazer download dos arquivos
+        X_response = requests.get(X_url)
+        y_response = requests.get(y_url)
         
-        return X, y
+        if X_response.status_code == 200 and y_response.status_code == 200:
+            # Salvar temporariamente e carregar
+            X_temp = BytesIO(X_response.content)
+            y_temp = BytesIO(y_response.content)
+            
+            X = np.load(X_temp, allow_pickle=True)
+            y = np.load(y_temp, allow_pickle=True)
+            
+            # Converter para float32 para compatibilidade com o modelo
+            X = X.astype('float32')
+            y = y.astype('float32')
+            
+            return X, y
+        else:
+            st.error("Erro ao baixar arquivos do GitHub")
+            return None, None
+            
     except Exception as e:
         st.error(f"Erro ao carregar dados processados: {e}")
         return None, None
 
 @st.cache_resource
 def load_model():
-    """Carrega o modelo LSTM treinado"""
+    """Carrega o modelo LSTM treinado do GitHub"""
     try:
-        model = tf.keras.models.load_model('modelos/predictive_maintenance_model.keras')
-        return model
+        # URL do modelo no GitHub
+        model_url = "https://raw.githubusercontent.com/sidnei-almeida/manutencao_preditiva_lstm/main/modelos/predictive_maintenance_model.keras"
+        
+        # Fazer download do modelo
+        response = requests.get(model_url)
+        
+        if response.status_code == 200:
+            # Salvar temporariamente e carregar
+            model_temp = BytesIO(response.content)
+            model = tf.keras.models.load_model(model_temp)
+            return model
+        else:
+            st.error("Erro ao baixar modelo do GitHub")
+            return None
+            
     except Exception as e:
         st.error(f"Erro ao carregar modelo: {e}")
         return None
