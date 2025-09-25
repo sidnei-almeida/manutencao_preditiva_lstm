@@ -77,23 +77,24 @@ streamlit run app_manutencao_preditiva.py --server.port 8502
 http://localhost:8502
 ```
 
-### Estrutura de Arquivos Necessários
+### Estrutura de Arquivos
+
+O app carrega automaticamente os arquivos necessários do repositório GitHub:
 
 ```
 manutencao_preditiva_lstm/
 ├── app_manutencao_preditiva.py    # App principal
-├── dados/
-│   ├── X_processed.npy           # Features processadas
-│   └── y_processed.npy           # Targets processados
-├── modelos/
-│   └── predictive_maintenance_model.keras  # Modelo treinado
-├── treinamento/
-│   └── training_summary.json     # Histórico de treinamento
 ├── .streamlit/
 │   └── config.toml              # Configuração do Streamlit
 ├── requirements.txt              # Dependências
 └── run_app.sh                   # Script de execução
 ```
+
+**Arquivos carregados automaticamente do GitHub:**
+- `dados/X_processed.npy` - Features processadas
+- `dados/y_processed.npy` - Targets processados  
+- `modelos/predictive_maintenance_model.keras` - Modelo treinado
+- `treinamento/training_summary.json` - Histórico de treinamento
 
 ## 🎨 Características Visuais
 
