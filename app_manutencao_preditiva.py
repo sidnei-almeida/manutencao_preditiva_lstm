@@ -1159,28 +1159,25 @@ def show_random_prediction(X, y, model):
         with col2:
             st.markdown("#### 🎯 Resultado da Predição")
             
-            # Cores baseadas na predição
+            # Cores minimalistas baseadas na predição
             if prediction == 1:
-                color = "#FF6B6B"
+                color = "#E74C3C"
                 label = "FALHA DETECTADA"
-                icon = "⚠️"
-                bg_gradient = "linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)"
+                bg_color = "rgba(231, 76, 60, 0.1)"
+                border_color = "#E74C3C"
             else:
-                color = "#00D4AA"
+                color = "#2ECC71"
                 label = "FUNCIONAMENTO NORMAL"
-                icon = "✅"
-                bg_gradient = "linear-gradient(135deg, #00D4AA 0%, #00E5B8 100%)"
+                bg_color = "rgba(46, 204, 113, 0.1)"
+                border_color = "#2ECC71"
             
-            # Card principal de resultado - mais compacto
+            # Card principal de resultado - minimalista
             st.markdown(f'''
-            <div style="background: {bg_gradient}; border-radius: 8px; padding: 1rem; margin: 0.5rem 0; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <span style="font-size: 1.5rem;">{icon}</span>
-                    <h4 style="color: #FFFFFF; font-family: 'Inter', sans-serif; font-weight: 600; margin: 0; font-size: 1rem;">
-                        {label}
-                    </h4>
-                </div>
-                <p style="color: #FFFFFF; font-size: 1.1rem; margin: 0; font-weight: 500;">
+            <div style="background: {bg_color}; border: 2px solid {border_color}; border-radius: 12px; padding: 1.5rem; margin: 0.5rem 0; text-align: center;">
+                <h4 style="color: {color}; font-family: 'Inter', sans-serif; font-weight: 600; margin: 0 0 1rem 0; font-size: 1.1rem; letter-spacing: 0.5px;">
+                    {label}
+                </h4>
+                <p style="color: #FFFFFF; font-size: 2rem; margin: 0; font-weight: 300;">
                     {prediction_prob:.1%}
                 </p>
             </div>
@@ -1191,55 +1188,52 @@ def show_random_prediction(X, y, model):
             
             with col2_1:
                 # Estado real
-                real_color = "#FF6B6B" if sample_y == 1 else "#00D4AA"
+                real_color = "#E74C3C" if sample_y == 1 else "#2ECC71"
                 real_label = "Falha" if sample_y == 1 else "Normal"
-                real_icon = "⚠️" if sample_y == 1 else "✅"
                 
                 st.markdown(f'''
-                <div style="background: rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 0.5rem; text-align: center; border-left: 3px solid {real_color};">
-                    <p style="color: #B0B0B0; font-size: 0.7rem; margin: 0;">Estado Real</p>
-                    <p style="color: {real_color}; font-size: 0.9rem; margin: 0; font-weight: 600;">{real_icon} {real_label}</p>
+                <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid {real_color}; border-radius: 8px; padding: 0.8rem; text-align: center;">
+                    <p style="color: #888888; font-size: 0.75rem; margin: 0 0 0.3rem 0; text-transform: uppercase; letter-spacing: 0.5px;">Estado Real</p>
+                    <p style="color: {real_color}; font-size: 1rem; margin: 0; font-weight: 500;">{real_label}</p>
                 </div>
                 ''', unsafe_allow_html=True)
             
             with col2_2:
                 # Status da predição
                 if prediction == sample_y:
-                    status_color = "#00D4AA"
-                    status_text = "✅ Correto"
-                    status_icon = "✅"
+                    status_color = "#2ECC71"
+                    status_text = "Correto"
                 else:
-                    status_color = "#FFB347"
-                    status_text = "❌ Incorreto"
-                    status_icon = "❌"
+                    status_color = "#F39C12"
+                    status_text = "Incorreto"
                 
                 st.markdown(f'''
-                <div style="background: rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 0.5rem; text-align: center; border-left: 3px solid {status_color};">
-                    <p style="color: #B0B0B0; font-size: 0.7rem; margin: 0;">Precisão</p>
-                    <p style="color: {status_color}; font-size: 0.9rem; margin: 0; font-weight: 600;">{status_icon} {status_text}</p>
+                <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid {status_color}; border-radius: 8px; padding: 0.8rem; text-align: center;">
+                    <p style="color: #888888; font-size: 0.75rem; margin: 0 0 0.3rem 0; text-transform: uppercase; letter-spacing: 0.5px;">Precisão</p>
+                    <p style="color: {status_color}; font-size: 1rem; margin: 0; font-weight: 500;">{status_text}</p>
                 </div>
                 ''', unsafe_allow_html=True)
             
-            # Gráfico de probabilidade mais compacto
+            # Gráfico de probabilidade minimalista
             fig = go.Figure(go.Indicator(
                 mode = "gauge+number",
                 value = prediction_prob * 100,
                 domain = {'x': [0, 1], 'y': [0, 1]},
-                title = {'text': "Probabilidade de Falha", 'font': {'size': 14}},
+                title = {'text': "Probabilidade de Falha", 'font': {'size': 14, 'color': '#FFFFFF'}},
                 gauge = {
-                    'axis': {'range': [None, 100], 'tickfont': {'size': 10}},
+                    'axis': {'range': [None, 100], 'tickfont': {'size': 10, 'color': '#888888'}},
                     'bar': {'color': color},
                     'steps': [
-                        {'range': [0, 50], 'color': "rgba(0, 212, 170, 0.2)"},
-                        {'range': [50, 100], 'color': "rgba(255, 107, 107, 0.2)"}
+                        {'range': [0, 50], 'color': "rgba(46, 204, 113, 0.1)"},
+                        {'range': [50, 100], 'color': "rgba(231, 76, 60, 0.1)"}
                     ],
                     'threshold': {
-                        'line': {'color': "red", 'width': 3},
+                        'line': {'color': "#888888", 'width': 2},
                         'thickness': 0.6,
                         'value': 50
                     }
                 },
-                number = {'font': {'size': 24}}
+                number = {'font': {'size': 24, 'color': '#FFFFFF'}}
             ))
             
             fig.update_layout(
@@ -1257,12 +1251,13 @@ def show_custom_prediction(model):
     st.markdown("### 📊 Análise Personalizada")
     st.markdown("Insira valores dos sensores para análise personalizada:")
     
-    # Criar formulário com campos de entrada
+    # Criar formulário com campos organizados
     with st.form("prediction_form"):
-        col1, col2 = st.columns(2)
+        # Layout em 3 colunas para melhor organização
+        col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.markdown("#### 🌡️ Sensores Térmicos")
+            st.markdown("#### Sensores Térmicos")
             air_temp = st.number_input(
                 "Temperatura do Ar [K]",
                 min_value=280.0,
@@ -1280,8 +1275,9 @@ def show_custom_prediction(model):
                 step=0.1,
                 help="Temperatura do processo em Kelvin"
             )
-            
-            st.markdown("#### ⚙️ Sensores Mecânicos")
+        
+        with col2:
+            st.markdown("#### Sensores Mecânicos")
             rotational_speed = st.number_input(
                 "Velocidade Rotacional [rpm]",
                 min_value=1000,
@@ -1300,8 +1296,8 @@ def show_custom_prediction(model):
                 help="Torque aplicado em Newton-metros"
             )
         
-        with col2:
-            st.markdown("#### 🔧 Sensores de Desgaste")
+        with col3:
+            st.markdown("#### Sensores de Desgaste")
             tool_wear = st.number_input(
                 "Desgaste da Ferramenta [min]",
                 min_value=0,
@@ -1311,7 +1307,6 @@ def show_custom_prediction(model):
                 help="Tempo de uso da ferramenta em minutos"
             )
             
-            st.markdown("#### 📋 Tipo de Produto")
             product_type = st.selectbox(
                 "Tipo de Produto",
                 ["H", "L", "M"],
@@ -1323,8 +1318,11 @@ def show_custom_prediction(model):
             type_l = 1 if product_type == "L" else 0
             type_m = 1 if product_type == "M" else 0
         
-        # Botão de submissão
-        submitted = st.form_submit_button("🔍 Analisar", type="primary")
+        # Botão centralizado com separador
+        st.markdown("---")
+        col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 1])
+        with col_btn2:
+            submitted = st.form_submit_button("Analisar", type="primary", use_container_width=True)
         
         if submitted:
             # Preparar dados para predição
@@ -1348,57 +1346,54 @@ def show_custom_prediction(model):
             
             with col1:
                 if prediction == 1:
-                    color = "#FF6B6B"
+                    color = "#E74C3C"
                     label = "FALHA DETECTADA"
-                    icon = "⚠️"
                     message = "Atenção! O modelo detectou sinais de possível falha."
-                    bg_gradient = "linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)"
+                    bg_color = "rgba(231, 76, 60, 0.1)"
+                    border_color = "#E74C3C"
                 else:
-                    color = "#00D4AA"
+                    color = "#2ECC71"
                     label = "FUNCIONAMENTO NORMAL"
-                    icon = "✅"
                     message = "Sistema funcionando normalmente."
-                    bg_gradient = "linear-gradient(135deg, #00D4AA 0%, #00E5B8 100%)"
+                    bg_color = "rgba(46, 204, 113, 0.1)"
+                    border_color = "#2ECC71"
                 
-                # Card principal de resultado - mais compacto
+                # Card principal de resultado - minimalista
                 st.markdown(f'''
-                <div style="background: {bg_gradient}; border-radius: 8px; padding: 1rem; margin: 0.5rem 0; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <span style="font-size: 1.5rem;">{icon}</span>
-                        <h4 style="color: #FFFFFF; font-family: 'Inter', sans-serif; font-weight: 600; margin: 0; font-size: 1rem;">
-                            {label}
-                        </h4>
-                    </div>
-                    <p style="color: #FFFFFF; font-size: 1.1rem; margin: 0; font-weight: 500;">
+                <div style="background: {bg_color}; border: 2px solid {border_color}; border-radius: 12px; padding: 1.5rem; margin: 0.5rem 0; text-align: center;">
+                    <h4 style="color: {color}; font-family: 'Inter', sans-serif; font-weight: 600; margin: 0 0 1rem 0; font-size: 1.1rem; letter-spacing: 0.5px;">
+                        {label}
+                    </h4>
+                    <p style="color: #FFFFFF; font-size: 2rem; margin: 0 0 0.5rem 0; font-weight: 300;">
                         {prediction_prob:.1%}
                     </p>
-                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.8rem; margin: 0.5rem 0 0 0;">
+                    <p style="color: #888888; font-size: 0.85rem; margin: 0; font-weight: 400;">
                         {message}
                     </p>
                 </div>
                 ''', unsafe_allow_html=True)
             
             with col2:
-                # Gráfico de probabilidade mais compacto
+                # Gráfico de probabilidade minimalista
                 fig = go.Figure(go.Indicator(
                     mode = "gauge+number",
                     value = prediction_prob * 100,
                     domain = {'x': [0, 1], 'y': [0, 1]},
-                    title = {'text': "Probabilidade de Falha", 'font': {'size': 14}},
+                    title = {'text': "Probabilidade de Falha", 'font': {'size': 14, 'color': '#FFFFFF'}},
                     gauge = {
-                        'axis': {'range': [None, 100], 'tickfont': {'size': 10}},
+                        'axis': {'range': [None, 100], 'tickfont': {'size': 10, 'color': '#888888'}},
                         'bar': {'color': color},
                         'steps': [
-                            {'range': [0, 50], 'color': "rgba(0, 212, 170, 0.2)"},
-                            {'range': [50, 100], 'color': "rgba(255, 107, 107, 0.2)"}
+                            {'range': [0, 50], 'color': "rgba(46, 204, 113, 0.1)"},
+                            {'range': [50, 100], 'color': "rgba(231, 76, 60, 0.1)"}
                         ],
                         'threshold': {
-                            'line': {'color': "red", 'width': 3},
+                            'line': {'color': "#888888", 'width': 2},
                             'thickness': 0.6,
                             'value': 50
                         }
                     },
-                    number = {'font': {'size': 24}}
+                    number = {'font': {'size': 24, 'color': '#FFFFFF'}}
                 ))
                 
                 fig.update_layout(
@@ -1411,26 +1406,20 @@ def show_custom_prediction(model):
                 
                 st.plotly_chart(fig, use_container_width=True)
             
-            # Interpretação dos resultados em cards elegantes
+            # Interpretação dos resultados minimalista
             if prediction_prob > 0.7:
-                rec_color = "#FF6B6B"
+                rec_color = "#E74C3C"
                 rec_text = "Alta probabilidade de falha. Recomenda-se inspeção imediata."
-                rec_icon = "🚨"
             elif prediction_prob > 0.5:
-                rec_color = "#FFB347"
+                rec_color = "#F39C12"
                 rec_text = "Probabilidade moderada de falha. Monitoramento recomendado."
-                rec_icon = "⚠️"
             else:
-                rec_color = "#00D4AA"
+                rec_color = "#2ECC71"
                 rec_text = "Baixa probabilidade de falha. Sistema operando normalmente."
-                rec_icon = "✅"
             
             st.markdown(f'''
-            <div style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 1rem; margin: 1rem 0; border-left: 4px solid {rec_color};">
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="font-size: 1.2rem;">{rec_icon}</span>
-                    <p style="color: {rec_color}; font-size: 0.9rem; margin: 0; font-weight: 600;">{rec_text}</p>
-                </div>
+            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid {rec_color}; border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+                <p style="color: {rec_color}; font-size: 0.9rem; margin: 0; font-weight: 500; text-align: center;">{rec_text}</p>
             </div>
             ''', unsafe_allow_html=True)
 
