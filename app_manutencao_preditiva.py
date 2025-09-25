@@ -281,9 +281,17 @@ def load_model():
         response = requests.get(model_url)
         
         if response.status_code == 200:
-            # Salvar temporariamente e carregar
-            model_temp = BytesIO(response.content)
-            model = tf.keras.models.load_model(model_temp)
+            # Salvar temporariamente em arquivo e carregar
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.keras') as temp_file:
+                temp_file.write(response.content)
+                temp_file_path = temp_file.name
+            
+            # Carregar o modelo do arquivo temporário
+            model = tf.keras.models.load_model(temp_file_path)
+            
+            # Remover arquivo temporário
+            os.unlink(temp_file_path)
+            
             return model
         else:
             st.error("Erro ao baixar modelo do GitHub")
