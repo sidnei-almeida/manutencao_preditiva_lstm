@@ -58,12 +58,18 @@ Um aplicativo Streamlit premium e elegante para análise e predição de falhas 
 
 ### Instalação Rápida
 
-1. **Instalar dependências:**
+1. **Clonar o repositório:**
+```bash
+git clone https://github.com/sidnei-almeida/manutencao_preditiva_lstm.git
+cd manutencao_preditiva_lstm
+```
+
+2. **Instalar dependências:**
 ```bash
 pip install -r requirements.txt
 ```
 
-2. **Executar o app:**
+3. **Executar o app:**
 ```bash
 # Método 1: Script automático
 ./run_app.sh
@@ -72,10 +78,12 @@ pip install -r requirements.txt
 streamlit run app_manutencao_preditiva.py --server.port 8502
 ```
 
-3. **Acessar no navegador:**
+4. **Acessar no navegador:**
 ```
 http://localhost:8502
 ```
+
+> **Nota**: O app carrega automaticamente os dados e modelo do repositório GitHub, não sendo necessário fazer download manual dos arquivos.
 
 ### Estrutura de Arquivos
 
@@ -95,6 +103,27 @@ manutencao_preditiva_lstm/
 - `dados/y_processed.npy` - Targets processados  
 - `modelos/predictive_maintenance_model.keras` - Modelo treinado
 - `treinamento/training_summary.json` - Histórico de treinamento
+
+## 🛠️ Tecnologias Utilizadas
+
+### Backend
+- **Python 3.8+** - Linguagem principal
+- **TensorFlow 2.15+** - Framework de Deep Learning
+- **NumPy** - Computação numérica
+- **Pandas** - Manipulação de dados
+- **Scikit-learn** - Pré-processamento e métricas
+
+### Frontend
+- **Streamlit** - Framework web para Python
+- **Plotly** - Visualizações interativas
+- **CSS3** - Estilização customizada
+- **HTML5** - Estrutura da interface
+
+### Machine Learning
+- **LSTM (Long Short-Term Memory)** - Arquitetura de rede neural
+- **Binary Classification** - Classificação binária
+- **Time Series Analysis** - Análise de séries temporais
+- **Predictive Maintenance** - Manutenção preditiva
 
 ## 🎨 Características Visuais
 
